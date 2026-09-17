@@ -100,6 +100,7 @@
     .practice-panel p { color:#5f605f; font-size:17px; line-height:1.75; margin:0; max-width:600px; }
     .practice-link { display:inline-flex; align-items:center; gap:13px; margin-top:42px; padding-bottom:8px; border-bottom:1px solid #9e885d; color:#4f4738; font-size:14px; font-weight:600; }
     .practice-link span { color:#8e7953; font-size:19px; }
+    .practice-link .practice-link-label { color:inherit; font-size:inherit; }
     .approach { background:var(--ink-2); padding:128px 0; }
     .approach-top { display:grid; grid-template-columns:1fr 1fr; gap:9vw; align-items:start; }
     .approach h2 { font:400 clamp(44px,5vw,72px)/1.1 var(--serif); margin:30px 0 0; letter-spacing:-.03em; max-width:650px; }
@@ -288,17 +289,17 @@
         <div class="section-head reveal"><div class="eyebrow dark">Практики</div><h2 id="services-title">Комплексная защита ваших интересов</h2></div>
         <div class="practice-layout reveal">
           <div class="practice-tabs" role="tablist" aria-label="Направления юридической практики">
-            <button class="practice-tab" type="button" role="tab" aria-selected="true" aria-controls="practice-panel" data-number="01" data-title="Банкротство" data-copy="Юристы и финансовые управляющие сопровождают процедуру на каждом этапе — от оценки ситуации до завершения дела."><span class="practice-tab-num">01</span><span class="practice-tab-label">Банкротство</span><span class="practice-tab-arrow">↗</span></button>
-            <button class="practice-tab" type="button" role="tab" aria-selected="false" aria-controls="practice-panel" data-number="02" data-title="ДТП" data-copy="Споры со страховыми компаниями, возмещение ущерба и защита интересов участников происшествия."><span class="practice-tab-num">02</span><span class="practice-tab-label">ДТП</span><span class="practice-tab-arrow">↗</span></button>
-            <button class="practice-tab" type="button" role="tab" aria-selected="false" aria-controls="practice-panel" data-number="03" data-title="Семейные споры" data-copy="Деликатная правовая поддержка при разделе имущества, расторжении брака и спорах о детях."><span class="practice-tab-num">03</span><span class="practice-tab-label">Семейные споры</span><span class="practice-tab-arrow">↗</span></button>
-            <button class="practice-tab" type="button" role="tab" aria-selected="false" aria-controls="practice-panel" data-number="04" data-title="Арбитражные споры" data-copy="Защита бизнеса в договорных, корпоративных и экономических конфликтах."><span class="practice-tab-num">04</span><span class="practice-tab-label">Арбитражные споры</span><span class="practice-tab-arrow">↗</span></button>
-            <button class="practice-tab" type="button" role="tab" aria-selected="false" aria-controls="practice-panel" data-number="05" data-title="Наследственные споры" data-copy="Сопровождение наследственных дел, восстановление прав и урегулирование разногласий."><span class="practice-tab-num">05</span><span class="practice-tab-label">Наследственные споры</span><span class="practice-tab-arrow">↗</span></button>
+            <button class="practice-tab" type="button" role="tab" aria-selected="true" aria-controls="practice-panel" data-number="01" data-title="Банкротство" data-copy="Юристы и финансовые управляющие сопровождают процедуру на каждом этапе — от оценки ситуации до завершения дела." data-url="bankrotstvo/" data-action="Подробнее о направлении"><span class="practice-tab-num">01</span><span class="practice-tab-label">Банкротство</span><span class="practice-tab-arrow">↗</span></button>
+            <button class="practice-tab" type="button" role="tab" aria-selected="false" aria-controls="practice-panel" data-number="02" data-title="ДТП" data-copy="Споры со страховыми компаниями, возмещение ущерба и защита интересов участников происшествия." data-url="dtp/" data-action="Подробнее о направлении"><span class="practice-tab-num">02</span><span class="practice-tab-label">ДТП</span><span class="practice-tab-arrow">↗</span></button>
+            <button class="practice-tab" type="button" role="tab" aria-selected="false" aria-controls="practice-panel" data-number="03" data-title="Семейные споры" data-copy="Деликатная правовая поддержка при разделе имущества, расторжении брака и спорах о детях." data-url="#contact" data-action="Обсудить ситуацию"><span class="practice-tab-num">03</span><span class="practice-tab-label">Семейные споры</span><span class="practice-tab-arrow">↗</span></button>
+            <button class="practice-tab" type="button" role="tab" aria-selected="false" aria-controls="practice-panel" data-number="04" data-title="Арбитражные споры" data-copy="Защита бизнеса в договорных, корпоративных и экономических конфликтах." data-url="#contact" data-action="Обсудить ситуацию"><span class="practice-tab-num">04</span><span class="practice-tab-label">Арбитражные споры</span><span class="practice-tab-arrow">↗</span></button>
+            <button class="practice-tab" type="button" role="tab" aria-selected="false" aria-controls="practice-panel" data-number="05" data-title="Наследственные споры" data-copy="Сопровождение наследственных дел, восстановление прав и урегулирование разногласий." data-url="#contact" data-action="Обсудить ситуацию"><span class="practice-tab-num">05</span><span class="practice-tab-label">Наследственные споры</span><span class="practice-tab-arrow">↗</span></button>
           </div>
           <div class="practice-panel" id="practice-panel" role="tabpanel" aria-live="polite">
             <div class="practice-panel-meta"><span>Направление практики</span><strong><span id="practice-number">01</span> / 05</strong></div>
             <h3 id="practice-title">Банкротство</h3>
             <p id="practice-copy">Юристы и финансовые управляющие сопровождают процедуру на каждом этапе — от оценки ситуации до завершения дела.</p>
-            <a class="practice-link" href="#contact">Обсудить ситуацию <span>↗</span></a>
+            <a class="practice-link" id="practice-link" href="bankrotstvo/"><span class="practice-link-label">Подробнее о направлении</span> <span>↗</span></a>
           </div>
         </div>
       </div>
@@ -386,11 +387,15 @@
     const practiceNumber = document.getElementById('practice-number');
     const practiceTitle = document.getElementById('practice-title');
     const practiceCopy = document.getElementById('practice-copy');
+    const practiceLink = document.getElementById('practice-link');
+    const practiceLinkLabel = practiceLink.querySelector('.practice-link-label');
     practiceTabs.forEach(tab => tab.addEventListener('click', () => {
       practiceTabs.forEach(item => item.setAttribute('aria-selected', String(item === tab)));
       practiceNumber.textContent = tab.dataset.number;
       practiceTitle.textContent = tab.dataset.title;
       practiceCopy.textContent = tab.dataset.copy;
+      practiceLink.href = tab.dataset.url;
+      practiceLinkLabel.textContent = tab.dataset.action;
     }));
     document.getElementById('consult-form').addEventListener('submit', event => {
       event.preventDefault();
