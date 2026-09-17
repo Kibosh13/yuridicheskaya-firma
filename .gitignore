@@ -1,0 +1,28 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and caches
+node_modules/
+.cache/
+.npm/
+.pnpm-store/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+.DS_Store
+work/
+
+# Local hosting metadata
+.openai/
+.sites-runtime/
+
+# Common framework build output (this project intentionally tracks dist/)
+.next/
+.nuxt/
+.output/
+coverage/
+
