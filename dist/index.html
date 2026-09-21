@@ -143,7 +143,17 @@
     .contact .eyebrow { color:#665530; }
     .contact h2 { font:400 clamp(45px,5.5vw,78px)/1.08 var(--serif); letter-spacing:-.035em; margin:31px 0 28px; }
     .contact-copy { color:#4e493f; font-size:18px; line-height:1.7; max-width:540px; }
-    .confidential { display:flex; align-items:center; gap:10px; margin-top:43px; color:#575145; font-size:13px; }
+    .contact-details { margin-top:39px; border-top:1px solid rgba(19,20,22,.32); max-width:560px; }
+    .contact-detail { display:grid; grid-template-columns:92px minmax(0,1fr); gap:22px; padding:18px 0 19px; border-bottom:1px solid rgba(19,20,22,.32); }
+    .contact-detail-label { color:#665d4d; font-size:11px; line-height:1.6; letter-spacing:.11em; text-transform:uppercase; }
+    .contact-detail address { color:#2d2d2b; font-style:normal; line-height:1.65; }
+    .contact-phones { display:flex; flex-wrap:wrap; gap:9px 22px; }
+    .contact-phones a { color:#252624; font-weight:600; border-bottom:1px solid rgba(19,20,22,.32); padding-bottom:3px; }
+    .contact-phones a:hover { border-color:#131416; }
+    .contact-hours { display:grid; grid-template-columns:auto auto; justify-content:start; gap:7px 26px; color:#2d2d2b; line-height:1.55; }
+    .contact-hours strong { font-weight:600; }
+    .contact-hours span:nth-child(even) { min-width:96px; }
+    .confidential { display:flex; align-items:center; gap:10px; margin-top:25px; color:#575145; font-size:13px; }
     .confidential::before { content:""; width:7px; height:7px; border:1px solid currentColor; transform:rotate(45deg); }
     .form { display:grid; grid-template-columns:1fr 1fr; gap:22px 18px; padding-top:7px; }
     .field { display:flex; flex-direction:column; gap:10px; }
@@ -164,6 +174,13 @@
     .footer .brand { color:#f2efe8; }
     .footer-nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:24px 34px; font-size:13px; }
     .footer-nav a:hover { color:var(--gold); }
+    .footer-contacts { display:grid; grid-template-columns:minmax(280px,1fr) auto; gap:38px; align-items:start; padding:26px 0 27px; border-bottom:1px solid var(--line-dark); font-size:13px; line-height:1.65; }
+    .footer-address { color:#b1afa9; max-width:670px; font-style:normal; }
+    .footer-location { display:flex; flex-direction:column; gap:7px; }
+    .footer-hours { color:#858580; font-size:12px; }
+    .footer-phones { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px 22px; }
+    .footer-phones a { color:#d3c4a3; }
+    .footer-phones a:hover { color:var(--gold-hi); }
     .footer-bottom { display:flex; justify-content:space-between; gap:30px; padding-top:27px; font-size:12px; }
     .footer-bottom a { color:#c7b68f; }
     @media (max-width:980px) {
@@ -242,6 +259,8 @@
       .form .button { width:100%; }
       .footer-top,.footer-bottom { display:flex; flex-direction:column; align-items:flex-start; }
       .footer-nav { justify-content:flex-start; }
+      .footer-contacts { grid-template-columns:1fr; gap:18px; }
+      .footer-phones { justify-content:flex-start; flex-direction:column; }
     }
     @media (prefers-reduced-motion:reduce) { html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}*{animation-duration:.01ms!important;transition-duration:.01ms!important} }
   </style>
@@ -348,7 +367,16 @@
     </section>
     <section class="contact" id="contact" aria-labelledby="contact-title">
       <div class="shell contact-grid">
-        <div class="reveal"><div class="eyebrow">Первый шаг</div><h2 id="contact-title">Обсудим вашу ситуацию</h2><p class="contact-copy">Кратко опишите вопрос. Мы изучим вводные и предложим удобное время для первичной консультации.</p><div class="confidential">Обращение конфиденциально</div></div>
+        <div class="reveal">
+          <div class="eyebrow">Первый шаг</div><h2 id="contact-title">Обсудим вашу ситуацию</h2>
+          <p class="contact-copy">Кратко опишите вопрос. Мы изучим вводные и предложим удобное время для первичной консультации.</p>
+          <div class="contact-details">
+            <div class="contact-detail"><span class="contact-detail-label">Адрес</span><address>Симферопольское ш., 4, стр. 6, Чехов<br>рынок «Губернский», вход 5, этаж 2, офис 201</address></div>
+            <div class="contact-detail"><span class="contact-detail-label">Телефоны</span><div class="contact-phones"><a href="tel:+79660980346">+7 966 098-03-46</a><a href="tel:+79856552065">+7 985 655-20-65</a><a href="tel:+79856552068">+7 985 655-20-68</a></div></div>
+            <div class="contact-detail"><span class="contact-detail-label">Режим работы</span><div class="contact-hours"><strong>Пн — Пт</strong><span>09:00–20:00</span><span>Сб — Вс</span><span>Выходной</span></div></div>
+          </div>
+          <div class="confidential">Обращение конфиденциально</div>
+        </div>
         <form class="form reveal" id="consult-form">
           <div class="field"><label for="name">Ваше имя</label><input id="name" name="name" autocomplete="name" placeholder="Как к вам обращаться" required></div>
           <div class="field"><label for="phone">Телефон</label><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+7 900 000-00-00" required></div>
@@ -360,7 +388,7 @@
       </div>
     </section>
   </main>
-  <footer class="footer"><div class="shell"><div class="footer-top"><a class="brand" href="#top"><span class="brand-mark">Л</span><span>ЛИТВИНОВА И ПАРТНЕРЫ<small>ЮРИДИЧЕСКАЯ КОМПАНИЯ</small></span></a><nav class="footer-nav" aria-label="Навигация в подвале"><a href="#services">Практики</a><a href="#approach">Подход</a><a href="#reviews">Отзывы</a><a href="#contact">Консультация</a></nav></div><div class="footer-bottom"><span>© 2026 Юридическая компания «Литвинова и партнеры»</span><a href="#top">Наверх ↑</a></div></div></footer>
+  <footer class="footer"><div class="shell"><div class="footer-top"><a class="brand" href="#top"><span class="brand-mark">Л</span><span>ЛИТВИНОВА И ПАРТНЕРЫ<small>ЮРИДИЧЕСКАЯ КОМПАНИЯ</small></span></a><nav class="footer-nav" aria-label="Навигация в подвале"><a href="#services">Практики</a><a href="#approach">Подход</a><a href="#reviews">Отзывы</a><a href="#contact">Консультация</a></nav></div><div class="footer-contacts"><div class="footer-location"><address class="footer-address">Симферопольское ш., 4, стр. 6, Чехов — рынок «Губернский», вход 5, этаж 2, офис 201</address><span class="footer-hours">Пн — Пт: 09:00–20:00 · Сб — Вс: выходной</span></div><div class="footer-phones"><a href="tel:+79660980346">+7 966 098-03-46</a><a href="tel:+79856552065">+7 985 655-20-65</a><a href="tel:+79856552068">+7 985 655-20-68</a></div></div><div class="footer-bottom"><span>© 2026 Юридическая компания «Литвинова и партнеры»</span><a href="#top">Наверх ↑</a></div></div></footer>
   <script>
     const menuButton = document.querySelector('.menu-button');
     const menu = document.querySelector('.nav-links');
