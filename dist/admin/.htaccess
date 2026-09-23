@@ -1,0 +1,5 @@
+Options -Indexes
+
+<FilesMatch "^(admin\.css|admin\.js|index\.php)$">
+  Require all granted
+</FilesMatch>

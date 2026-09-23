@@ -15,6 +15,7 @@ node_modules/
 *.swp
 .DS_Store
 work/
+.deployment-private/
 
 # Local hosting metadata
 .openai/
@@ -25,4 +26,3 @@ work/
 .nuxt/
 .output/
 coverage/
-
