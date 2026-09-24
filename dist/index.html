@@ -169,6 +169,8 @@
     .form .button:hover { background:#2a2b2c; border-color:#2a2b2c; }
     .success { grid-column:1 / -1; display:none; padding:17px 20px; border:1px solid rgba(19,20,22,.45); font-size:14px; }
     .success.show { display:block; }
+    .success.error { border-color:#9d3f3f; color:#7d2929; }
+    .form .button:disabled { opacity:.65; cursor:wait; transform:none; }
     .footer { background:#08090a; padding:52px 0 34px; color:#999995; }
     .footer-top { display:grid; grid-template-columns:1fr auto; align-items:end; gap:32px; padding-bottom:45px; border-bottom:1px solid var(--line-dark); }
     .footer .brand { color:#f2efe8; }
@@ -377,7 +379,8 @@
           </div>
           <div class="confidential">Обращение конфиденциально</div>
         </div>
-        <form class="form reveal" id="consult-form">
+        <form class="form reveal" id="consult-form" action="api/lead.php" method="post">
+          <input type="text" name="website" value="" tabindex="-1" autocomplete="off" hidden aria-hidden="true">
           <div class="field"><label for="name">Ваше имя</label><input id="name" name="name" autocomplete="name" placeholder="Как к вам обращаться" required></div>
           <div class="field"><label for="phone">Телефон</label><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+7 900 000-00-00" required></div>
           <div class="field full"><label for="topic">Направление</label><select id="topic" name="topic" required><option value="">Выберите направление</option><option>Банкротство</option><option>ДТП</option><option>Семейные споры</option><option>Арбитражные споры</option><option>Наследственные споры</option></select></div>
@@ -425,10 +428,34 @@
       practiceLink.href = tab.dataset.url;
       practiceLinkLabel.textContent = tab.dataset.action;
     }));
-    document.getElementById('consult-form').addEventListener('submit', event => {
+    document.getElementById('consult-form').addEventListener('submit', async event => {
       event.preventDefault();
+      const form = event.currentTarget;
       const success = document.getElementById('success');
-      success.classList.add('show');
+      const button = form.querySelector('button[type="submit"]');
+      const defaultMessage = success.textContent;
+      const defaultButton = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Отправляем…';
+      success.classList.remove('show', 'error');
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.message || 'Не удалось отправить заявку.');
+        form.reset();
+        success.textContent = defaultMessage;
+        success.classList.add('show');
+      } catch (error) {
+        success.textContent = error instanceof Error ? error.message : 'Не удалось отправить заявку. Позвоните нам по телефону.';
+        success.classList.add('show', 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = defaultButton;
+      }
       success.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
     });
   </script>

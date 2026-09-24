@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require dirname(__DIR__) . '/cms/runtime.php';
+require dirname(__DIR__) . '/cms/leads.php';
 
 header('X-Robots-Tag: noindex, nofollow, noarchive', true);
 header('X-Frame-Options: DENY');
@@ -59,10 +60,23 @@ function admin_save_json(string $file, array $data): bool
     return rename($temporary, $file);
 }
 
-function admin_redirect(string $status): never
+function admin_redirect(string $status, string $anchor = ''): never
 {
-    header('Location: ./?status=' . rawurlencode($status));
+    $location = './?status=' . rawurlencode($status);
+    if ($anchor !== '') {
+        $location .= '#' . rawurlencode($anchor);
+    }
+    header('Location: ' . $location);
     exit;
+}
+
+function admin_lead_date(string $value): string
+{
+    try {
+        return (new DateTimeImmutable($value))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('d.m.Y H:i');
+    } catch (Exception) {
+        return $value;
+    }
 }
 
 $loggedIn = !empty($_SESSION['admin_authenticated']);
@@ -108,6 +122,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($loggedIn) {
         if (!admin_csrf_valid()) {
             admin_redirect('csrf-error');
+        }
+
+        if ($action === 'update_lead') {
+            $leadId = trim((string) ($_POST['lead_id'] ?? ''));
+            $leadStatus = trim((string) ($_POST['lead_status'] ?? ''));
+            $leadNote = mb_substr(trim((string) ($_POST['lead_note'] ?? '')), 0, 5000, 'UTF-8');
+            $allowedStatuses = cms_lead_statuses();
+            if (!preg_match('/^L-[A-Z0-9-]{8,40}$/', $leadId) || !array_key_exists($leadStatus, $allowedStatuses)) {
+                admin_redirect('lead-error', 'leads');
+            }
+
+            $found = false;
+            $savedLead = cms_leads_mutate(static function (array $leads) use ($leadId, $leadStatus, $leadNote, &$found): array {
+                foreach ($leads as &$lead) {
+                    if (is_array($lead) && isset($lead['id']) && hash_equals($leadId, (string) $lead['id'])) {
+                        $lead['status'] = $leadStatus;
+                        $lead['note'] = $leadNote;
+                        $lead['updated_at'] = gmdate('c');
+                        $found = true;
+                        break;
+                    }
+                }
+                unset($lead);
+                return $leads;
+            });
+
+            if (!$savedLead || !$found) {
+                admin_redirect('lead-error', 'leads');
+            }
+            admin_redirect('lead-saved', 'leads');
         }
 
         if ($action === 'save_content') {
@@ -199,11 +243,13 @@ $statusMessages = [
     'welcome' => ['success', 'Вход выполнен. Все изменения публикуются сразу после сохранения.'],
     'saved' => ['success', 'Изменения сохранены и уже опубликованы на сайте.'],
     'image-saved' => ['success', 'Новое изображение загружено и опубликовано.'],
+    'lead-saved' => ['success', 'Статус и комментарий к заявке сохранены.'],
     'password-saved' => ['success', 'Пароль администратора изменён.'],
     'save-error' => ['error', 'Не удалось записать изменения. Проверьте права доступа к хранилищу.'],
     'image-error' => ['error', 'Не удалось загрузить изображение.'],
     'image-too-large' => ['error', 'Файл слишком большой. Максимум — 8 МБ.'],
     'image-format' => ['error', 'Поддерживаются JPG, PNG, WebP и AVIF.'],
+    'lead-error' => ['error', 'Не удалось обновить заявку. Обновите страницу и повторите действие.'],
     'password-current' => ['error', 'Текущий пароль указан неверно.'],
     'password-invalid' => ['error', 'Новый пароль должен содержать не менее 14 символов и совпадать с подтверждением.'],
     'password-error' => ['error', 'Не удалось изменить пароль.'],
@@ -212,6 +258,15 @@ $statusMessages = [
 $status = isset($_GET['status']) ? (string) $_GET['status'] : '';
 $message = $statusMessages[$status] ?? null;
 $content = cms_content(true);
+$leadStatuses = cms_lead_statuses();
+$leads = $loggedIn ? cms_leads_read() : [];
+$leadCounts = array_fill_keys(array_keys($leadStatuses), 0);
+foreach ($leads as $lead) {
+    $leadStatus = (string) ($lead['status'] ?? 'new');
+    if (array_key_exists($leadStatus, $leadCounts)) {
+        $leadCounts[$leadStatus]++;
+    }
+}
 ?>
 <!doctype html>
 <html lang="ru">
@@ -221,7 +276,7 @@ $content = cms_content(true);
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="color-scheme" content="light">
   <title><?= $loggedIn ? 'Управление сайтом' : 'Вход' ?> — <?= admin_h(cms_value('site.company')) ?></title>
-  <link rel="stylesheet" href="admin.css?v=2">
+  <link rel="stylesheet" href="admin.css?v=3">
 </head>
 <body class="<?= $loggedIn ? 'dashboard-page' : 'login-page' ?>">
 <?php if (!$loggedIn): ?>
@@ -246,6 +301,7 @@ $content = cms_content(true);
       <a class="sidebar-brand" href="./"><span><?= admin_h(mb_substr(cms_value('site.mark'), 0, 2, 'UTF-8')) ?></span><div><strong><?= admin_h(cms_value('site.company')) ?></strong><small>Админ-панель</small></div></a>
       <div class="sidebar-search"><label for="section-search">Поиск настроек</label><input id="section-search" type="search" placeholder="Например, телефон"></div>
       <nav class="sidebar-nav" aria-label="Разделы настроек">
+        <a href="#leads">Заявки<?= $leadCounts['new'] > 0 ? ' · ' . $leadCounts['new'] . ' новых' : '' ?></a>
         <?php foreach (cms_sections() as $section): ?>
           <a href="#<?= admin_h($section['id']) ?>"><?= admin_h($section['label']) ?></a>
         <?php endforeach; ?>
@@ -259,16 +315,62 @@ $content = cms_content(true);
 
     <main class="content">
       <header class="topbar">
-        <div><p class="kicker">CMS / <?= admin_h(cms_value('site.company')) ?></p><h1>Управление сайтом</h1><p>Изменения публикуются сразу после сохранения.</p></div>
+        <div><p class="kicker">CRM + CMS / <?= admin_h(cms_value('site.company')) ?></p><h1>Заявки и сайт</h1><p>Работайте с обращениями клиентов и содержимым сайта в одном месте.</p></div>
         <a class="preview-button" href="../" target="_blank" rel="noopener">Предпросмотр ↗</a>
       </header>
 
       <?php if ($message): ?><div class="notice <?= admin_h($message[0]) ?>"><?= admin_h($message[1]) ?></div><?php endif; ?>
 
       <section class="summary-grid" aria-label="Сводка">
-        <article><span>СТРАНИЦЫ</span><strong>3</strong><p>Главная, банкротство и ДТП</p></article>
-        <article><span>ПОЛЯ</span><strong><?= count(cms_fields()) ?></strong><p>Тексты, контакты и SEO</p></article>
-        <article><span>ИНДЕКСАЦИЯ</span><strong><?= cms_value('seo.indexing') === '1' ? 'ВКЛ' : 'ВЫКЛ' ?></strong><p><?= cms_value('seo.indexing') === '1' ? 'Сайт открыт поисковикам' : 'Сайт закрыт от поисковиков' ?></p></article>
+        <article><span>ВСЕ ЗАЯВКИ</span><strong><?= count($leads) ?></strong><p>Обращения с формы сайта</p></article>
+        <article><span>НОВЫЕ</span><strong><?= $leadCounts['new'] ?></strong><p>Ожидают первого контакта</p></article>
+        <article><span>В РАБОТЕ</span><strong><?= $leadCounts['in_progress'] ?></strong><p>Клиенты, которыми занимаются</p></article>
+      </section>
+
+      <section class="panel leads-panel" id="leads" data-searchable="crm заявки клиенты обращения статусы новые в работе обработаны">
+        <div class="panel-heading"><div><p class="kicker">МИНИ-CRM</p><h2>Заявки с сайта</h2><p>Новые обращения появляются здесь автоматически. Меняйте статус и сохраняйте внутренние заметки по каждому клиенту.</p></div><span><?= count($leads) ?> заявок</span></div>
+        <div class="lead-filters" aria-label="Фильтр заявок">
+          <button type="button" class="lead-filter active" data-lead-filter="all">Все <span><?= count($leads) ?></span></button>
+          <?php foreach ($leadStatuses as $statusKey => $statusLabel): ?>
+            <button type="button" class="lead-filter" data-lead-filter="<?= admin_h($statusKey) ?>"><?= admin_h($statusLabel) ?> <span><?= $leadCounts[$statusKey] ?></span></button>
+          <?php endforeach; ?>
+        </div>
+        <?php if (!$leads): ?>
+          <div class="lead-empty"><strong>Заявок пока нет</strong><p>После отправки формы на сайте обращение появится здесь со статусом «Новая».</p></div>
+        <?php else: ?>
+          <div class="leads-list">
+            <?php foreach ($leads as $lead): ?>
+              <?php
+                $leadStatus = array_key_exists((string) ($lead['status'] ?? ''), $leadStatuses) ? (string) $lead['status'] : 'new';
+                $leadPhone = (string) ($lead['phone'] ?? '');
+                $leadPhoneHref = preg_replace('/[^\d+]/', '', $leadPhone);
+              ?>
+              <article class="lead-card" data-lead-status="<?= admin_h($leadStatus) ?>">
+                <div class="lead-card-head">
+                  <div><span class="lead-id"><?= admin_h((string) ($lead['id'] ?? '')) ?></span><time><?= admin_h(admin_lead_date((string) ($lead['created_at'] ?? ''))) ?></time></div>
+                  <span class="lead-status status-<?= admin_h($leadStatus) ?>"><?= admin_h($leadStatuses[$leadStatus]) ?></span>
+                </div>
+                <div class="lead-details">
+                  <div><span>Клиент</span><strong><?= admin_h((string) ($lead['name'] ?? 'Без имени')) ?></strong><a href="tel:<?= admin_h((string) $leadPhoneHref) ?>"><?= admin_h($leadPhone) ?></a></div>
+                  <div><span>Направление</span><strong><?= admin_h((string) ($lead['topic'] ?? 'Не указано')) ?></strong><small><?= admin_h((string) ($lead['source'] ?? 'Форма на сайте')) ?></small></div>
+                </div>
+                <div class="lead-message"><span>Описание ситуации</span><p><?= nl2br(admin_h((string) ($lead['message'] ?? 'Не заполнено'))) ?></p></div>
+                <form method="post" class="lead-manage">
+                  <input type="hidden" name="action" value="update_lead">
+                  <input type="hidden" name="csrf" value="<?= admin_h((string) $_SESSION['csrf']) ?>">
+                  <input type="hidden" name="lead_id" value="<?= admin_h((string) ($lead['id'] ?? '')) ?>">
+                  <label class="control"><span>Статус</span><select name="lead_status">
+                    <?php foreach ($leadStatuses as $statusKey => $statusLabel): ?>
+                      <option value="<?= admin_h($statusKey) ?>" <?= $leadStatus === $statusKey ? 'selected' : '' ?>><?= admin_h($statusLabel) ?></option>
+                    <?php endforeach; ?>
+                  </select></label>
+                  <label class="control lead-note"><span>Внутренний комментарий</span><textarea name="lead_note" rows="2" placeholder="Например: перезвонить в 15:00"><?= admin_h((string) ($lead['note'] ?? '')) ?></textarea></label>
+                  <button class="secondary-button" type="submit">Сохранить</button>
+                </form>
+              </article>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
       </section>
 
       <section class="panel image-panel" id="images" data-searchable="изображение фото первый экран hero">
@@ -332,7 +434,7 @@ $content = cms_content(true);
       </section>
     </main>
   </div>
-  <script src="admin.js?v=1"></script>
+  <script src="admin.js?v=2"></script>
 <?php endif; ?>
 </body>
 </html>

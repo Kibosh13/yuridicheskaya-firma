@@ -17,3 +17,14 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
     }
   });
 });
+
+const leadFilters = document.querySelectorAll('[data-lead-filter]');
+leadFilters.forEach(button => {
+  button.addEventListener('click', () => {
+    const status = button.dataset.leadFilter;
+    leadFilters.forEach(item => item.classList.toggle('active', item === button));
+    document.querySelectorAll('[data-lead-status]').forEach(card => {
+      card.hidden = status !== 'all' && card.dataset.leadStatus !== status;
+    });
+  });
+});
