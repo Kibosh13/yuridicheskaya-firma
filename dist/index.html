@@ -447,7 +447,7 @@
         const result = await response.json();
         if (!response.ok || !result.ok) throw new Error(result.message || 'Не удалось отправить заявку.');
         form.reset();
-        success.textContent = defaultMessage;
+        success.textContent = result.id ? `${defaultMessage} Номер заявки: ${result.id}.` : defaultMessage;
         success.classList.add('show');
       } catch (error) {
         success.textContent = error instanceof Error ? error.message : 'Не удалось отправить заявку. Позвоните нам по телефону.';

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/cms/runtime.php';
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 try {
     echo cms_render(__DIR__ . '/index.html', 'home');
 } catch (Throwable $error) {
