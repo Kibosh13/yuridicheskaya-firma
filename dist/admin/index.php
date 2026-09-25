@@ -276,7 +276,7 @@ foreach ($leads as $lead) {
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="color-scheme" content="light">
   <title><?= $loggedIn ? 'Управление сайтом' : 'Вход' ?> — <?= admin_h(cms_value('site.company')) ?></title>
-  <link rel="stylesheet" href="admin.css?v=3">
+  <link rel="stylesheet" href="admin.css?v=4">
 </head>
 <body class="<?= $loggedIn ? 'dashboard-page' : 'login-page' ?>">
 <?php if (!$loggedIn): ?>
@@ -328,7 +328,7 @@ foreach ($leads as $lead) {
       </section>
 
       <section class="panel leads-panel" id="leads" data-searchable="crm заявки клиенты обращения статусы новые в работе обработаны">
-        <div class="panel-heading"><div><p class="kicker">МИНИ-CRM</p><h2>Заявки с сайта</h2><p>Новые обращения появляются здесь автоматически. Меняйте статус и сохраняйте внутренние заметки по каждому клиенту.</p></div><div class="lead-heading-actions"><span><?= count($leads) ?> заявок</span><a href="./#leads">Обновить заявки</a></div></div>
+        <div class="panel-heading"><div><p class="kicker">МИНИ-CRM</p><h2>Заявки с сайта</h2><p>Новые обращения появляются здесь автоматически. Меняйте статус и сохраняйте внутренние заметки по каждому клиенту.</p></div><div class="lead-heading-actions"><span><?= count($leads) ?> заявок</span><a href="./#leads"><b aria-hidden="true">↻</b> Обновить</a></div></div>
         <div class="lead-filters" aria-label="Фильтр заявок">
           <button type="button" class="lead-filter active" data-lead-filter="all">Все <span><?= count($leads) ?></span></button>
           <?php foreach ($leadStatuses as $statusKey => $statusLabel): ?>
