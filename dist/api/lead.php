@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require dirname(__DIR__) . '/cms/leads.php';
+require dirname(__DIR__) . '/cms/notifications.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 header('Cache-Control: no-store, max-age=0');
@@ -95,6 +96,19 @@ $saved = cms_leads_mutate(static function (array $leads) use ($lead): array {
 if (!$saved) {
     lead_response(500, ['ok' => false, 'message' => 'Не удалось сохранить заявку. Позвоните нам по телефону.']);
 }
+
+$notificationStatus = cms_send_lead_notification($lead);
+cms_leads_mutate(static function (array $leads) use ($lead, $notificationStatus): array {
+    foreach ($leads as &$storedLead) {
+        if (is_array($storedLead) && isset($storedLead['id']) && hash_equals((string) $lead['id'], (string) $storedLead['id'])) {
+            $storedLead['notification_status'] = $notificationStatus;
+            $storedLead['notification_at'] = gmdate('c');
+            break;
+        }
+    }
+    unset($storedLead);
+    return $leads;
+});
 
 $_SESSION['last_submission'] = time();
 lead_response(201, ['ok' => true, 'id' => $lead['id']]);

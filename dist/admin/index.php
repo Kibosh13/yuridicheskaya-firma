@@ -173,6 +173,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($saved['site.mark'])) {
                 $saved['site.mark'] = mb_substr($saved['site.mark'], 0, 2, 'UTF-8');
             }
+            if (($saved['notifications.email'] ?? '') !== '' && filter_var($saved['notifications.email'], FILTER_VALIDATE_EMAIL) === false) {
+                admin_redirect('email-invalid', 'notifications');
+            }
             if (!admin_save_json(cms_content_file(), $saved)) {
                 admin_redirect('save-error');
             }
@@ -250,6 +253,7 @@ $statusMessages = [
     'image-too-large' => ['error', 'Файл слишком большой. Максимум — 8 МБ.'],
     'image-format' => ['error', 'Поддерживаются JPG, PNG, WebP и AVIF.'],
     'lead-error' => ['error', 'Не удалось обновить заявку. Обновите страницу и повторите действие.'],
+    'email-invalid' => ['error', 'Проверьте адрес для почтовых уведомлений.'],
     'password-current' => ['error', 'Текущий пароль указан неверно.'],
     'password-invalid' => ['error', 'Новый пароль должен содержать не менее 14 символов и совпадать с подтверждением.'],
     'password-error' => ['error', 'Не удалось изменить пароль.'],
@@ -276,7 +280,7 @@ foreach ($leads as $lead) {
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="color-scheme" content="light">
   <title><?= $loggedIn ? 'Управление сайтом' : 'Вход' ?> — <?= admin_h(cms_value('site.company')) ?></title>
-  <link rel="stylesheet" href="admin.css?v=4">
+  <link rel="stylesheet" href="admin.css?v=5">
 </head>
 <body class="<?= $loggedIn ? 'dashboard-page' : 'login-page' ?>">
 <?php if (!$loggedIn): ?>
@@ -344,6 +348,14 @@ foreach ($leads as $lead) {
                 $leadStatus = array_key_exists((string) ($lead['status'] ?? ''), $leadStatuses) ? (string) $lead['status'] : 'new';
                 $leadPhone = (string) ($lead['phone'] ?? '');
                 $leadPhoneHref = preg_replace('/[^\d+]/', '', $leadPhone);
+                $notificationStatus = (string) ($lead['notification_status'] ?? 'unknown');
+                $notificationLabels = [
+                    'sent' => 'Письмо отправлено',
+                    'failed' => 'Ошибка отправки письма',
+                    'not_configured' => 'Email не настроен',
+                    'unknown' => 'Статус письма неизвестен',
+                ];
+                $notificationLabel = $notificationLabels[$notificationStatus] ?? $notificationLabels['unknown'];
               ?>
               <article class="lead-card" data-lead-status="<?= admin_h($leadStatus) ?>">
                 <div class="lead-card-head">
@@ -352,7 +364,7 @@ foreach ($leads as $lead) {
                 </div>
                 <div class="lead-details">
                   <div><span>Клиент</span><strong><?= admin_h((string) ($lead['name'] ?? 'Без имени')) ?></strong><a href="tel:<?= admin_h((string) $leadPhoneHref) ?>"><?= admin_h($leadPhone) ?></a></div>
-                  <div><span>Направление</span><strong><?= admin_h((string) ($lead['topic'] ?? 'Не указано')) ?></strong><small><?= admin_h((string) ($lead['source'] ?? 'Форма на сайте')) ?></small></div>
+                  <div><span>Направление</span><strong><?= admin_h((string) ($lead['topic'] ?? 'Не указано')) ?></strong><small><?= admin_h((string) ($lead['source'] ?? 'Форма на сайте')) ?></small><small class="lead-mail-status mail-<?= admin_h($notificationStatus) ?>"><?= admin_h($notificationLabel) ?></small></div>
                 </div>
                 <div class="lead-message"><span>Описание ситуации</span><p><?= nl2br(admin_h((string) ($lead['message'] ?? 'Не заполнено'))) ?></p></div>
                 <form method="post" class="lead-manage">
@@ -409,7 +421,7 @@ foreach ($leads as $lead) {
                     <?php if ($field['type'] === 'textarea'): ?>
                       <textarea name="content[<?= admin_h($field['key']) ?>]" rows="3"><?= admin_h($value) ?></textarea>
                     <?php else: ?>
-                      <input type="<?= $field['type'] === 'url' ? 'url' : 'text' ?>" name="content[<?= admin_h($field['key']) ?>]" value="<?= admin_h($value) ?>">
+                      <input type="<?= in_array($field['type'], ['url', 'email'], true) ? admin_h($field['type']) : 'text' ?>" name="content[<?= admin_h($field['key']) ?>]" value="<?= admin_h($value) ?>">
                     <?php endif; ?>
                     <?php if ($field['help'] !== ''): ?><small><?= admin_h($field['help']) ?></small><?php endif; ?>
                   </label>
